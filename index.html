@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Standard Calculator</title>
 <style>
+  /* ---- Thiet lap bien mau sac va kich thuoc mac dinh ---- */
   :root{
     --bg-top: #f6fbf5;
     --bg-bottom: #eef7ec;
@@ -16,13 +17,17 @@
     --radius: 8px;
     --btn-size: 72px;
   }
+
+  /* ---- Can chinh tong the giao dien ---- */
   html,body{
     height:100%; margin:0;
-    font-family:"Segoe UI","Segoe UI Variable",system-ui,-apple-system,"Helvetica Neue",Arial;
+    font-family:"Segoe UI",system-ui,-apple-system;
     background:linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
     display:flex;justify-content:center;align-items:flex-start;
     padding:28px;color:#0b1a0b;
   }
+
+  /* ---- Khung chinh cua may tinh ---- */
   .calc{
     width:420px;
     border-radius:10px;
@@ -31,16 +36,26 @@
     border:1px solid rgba(0,0,0,0.04);
     overflow:hidden;
   }
+
+  /* ---- Thanh tieu de tren cung ---- */
   .titlebar{height:48px;display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid rgba(3,20,10,0.02);}
   .app-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#2b8b7b,#7fc6a6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;}
   .title-text{font-weight:600;font-size:14px;color:#0b2b1a;flex:1;}
+
+  /* ---- Khu vuc chinh chua cac nut ---- */
   .main{padding:14px 18px 18px 18px;background:linear-gradient(180deg,rgba(246,251,245,0.6),rgba(239,251,240,0.4));}
   .mode-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
   .mode-title{font-size:20px;font-weight:700;color:#17221a;}
+
+  /* ---- Man hinh hien thi so ---- */
   .display{height:110px;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;margin-bottom:12px;}
   #summary{color:var(--muted);font-size:18px;text-align:right;min-height:22px;}
   #display{font-size:72px;font-weight:700;color:var(--display-text);text-align:right;overflow:hidden;white-space:nowrap;transition:font-size 0.12s;}
+
+  /* ---- Hang nho bo nho (chua su dung) ---- */
   .memory-row{display:flex;justify-content:space-between;color:#9aa69a;font-size:13px;padding:6px 2px;margin-bottom:10px;}
+
+  /* ---- Luoi cac nut bam ---- */
   .kbd{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
   .btn{height:var(--btn-size);border-radius:var(--radius);background:var(--btn-bg);border:1px solid var(--btn-border);display:flex;align-items:center;justify-content:center;font-size:20px;color:#0b1a0b;user-select:none;transition:background 0.12s,transform 0.06s;}
   .btn.small{font-size:17px;}
@@ -51,6 +66,7 @@
 </style>
 </head>
 <body>
+  <!-- ---- Giao dien chinh cua may tinh ---- -->
   <div class="calc">
     <div class="titlebar">
       <div class="app-icon">C</div>
@@ -60,13 +76,16 @@
     <div class="main">
       <div class="mode-row"><div class="mode-title">Standard</div></div>
 
+      <!-- Man hinh hien thi ket qua -->
       <div class="display">
         <div id="summary"></div>
         <div id="display">0</div>
       </div>
 
+      <!-- Hang bo nho (mo phong nhu may tinh Windows) -->
       <div class="memory-row"><div>MC&nbsp;&nbsp;MR&nbsp;&nbsp;M+&nbsp;&nbsp;M−&nbsp;&nbsp;MS</div><div>M∨</div></div>
 
+      <!-- Cac nut bam chuc nang -->
       <div class="kbd">
         <div class="btn small" data-action="phantram">%</div>
         <div class="btn small" data-action="xoa-entry">CE</div>
@@ -102,24 +121,32 @@
   </div>
 
 <script>
+/* ---- Lay cac phan tu man hinh ---- */
 const displayEl = document.getElementById('display');
 const summaryEl = document.getElementById('summary');
 
-let previous = null;
-let current = '0';
-let operator = null;
-let lastOperandForRepeat = null;
+/* ---- Cac bien trang thai ---- */
+let previous = null; // so truoc
+let current = '0'; // so hien tai tren man hinh
+let operator = null; // phep toan hien tai
+let lastOperandForRepeat = null; // dung de lap lai phep tinh khi bam dau =
 let typedRightOperand = false;
 let resetNext = false;
+
+/* ---- Gioi han kich thuoc chu tren man hinh ---- */
 const MAX_FONT = 72;
 const MIN_FONT = 28;
 
+/* ---- Cap nhat noi dung man hinh ---- */
 function capnhatManhinh(){
   displayEl.textContent = current;
   displayTuDong();
 }
+
+/* ---- Xoa dong tom tat ---- */
 function xoaTomtat(){ summaryEl.textContent = ''; }
 
+/* ---- Tu dong thu nho chu khi so qua dai ---- */
 function displayTuDong(){
   displayEl.style.fontSize = MAX_FONT + 'px';
   let font = MAX_FONT;
@@ -129,6 +156,7 @@ function displayTuDong(){
   }
 }
 
+/* ---- Them so vao man hinh ---- */
 function themSo(d){
   if (resetNext){
     current = '0';
@@ -146,6 +174,7 @@ function themSo(d){
   capnhatManhinh();
 }
 
+/* ---- Ham tinh toan co ban ---- */
 function tinh(aStr, op, bStr){
   const a = parseFloat(aStr);
   const b = parseFloat(bStr);
@@ -154,11 +183,12 @@ function tinh(aStr, op, bStr){
     case '+': return a + b;
     case '−': return a - b;
     case '×': return a * b;
-    case '÷': return b === 0 ? NaN : a / b;
+    case '÷': return b === 0 ? NaN : a / b; // tranh chia cho 0
   }
   return null;
 }
 
+/* ---- Dinh dang ket qua hien thi ---- */
 function dinhDang(n){
   if (!isFinite(n)) return 'Loi';
   let s = String(Number(n.toPrecision(12)));
@@ -166,6 +196,7 @@ function dinhDang(n){
   return s;
 }
 
+/* ---- Xu ly khi bam phep toan + - × ÷ ---- */
 function xuLyToanTu(op){
   if (operator === null){
     previous = current;
@@ -187,7 +218,6 @@ function xuLyToanTu(op){
   const formatted = (res === null || !isFinite(res)) ? 'Loi' : dinhDang(res);
   previous = formatted;
   current = formatted;
-  lastOperandForRepeat = previous;
   operator = op;
   resetNext = true;
   typedRightOperand = false;
@@ -195,6 +225,7 @@ function xuLyToanTu(op){
   capnhatManhinh();
 }
 
+/* ---- Xu ly nut bang (=) ---- */
 function xuLyBang(){
   if (operator === null) return;
 
@@ -227,10 +258,8 @@ function xuLyBang(){
   capnhatManhinh();
 }
 
-function xoaTatca(){
-  previous = null; current = '0'; operator = null; lastOperandForRepeat = null; resetNext = false; typedRightOperand = false;
-  capnhatManhinh(); xoaTomtat();
-}
+/* ---- Cac nut xoa: C, CE, ⌫ ---- */
+function xoaTatca(){ previous = null; current = '0'; operator = null; lastOperandForRepeat = null; resetNext = false; typedRightOperand = false; capnhatManhinh(); xoaTomtat(); }
 function xoaNhap(){ current = '0'; capnhatManhinh(); }
 function xoa1So(){
   if (current === 'Loi'){ current = '0'; capnhatManhinh(); return; }
@@ -238,11 +267,15 @@ function xoa1So(){
   else current = current.slice(0, -1);
   capnhatManhinh();
 }
+
+/* ---- Doi dau + / - ---- */
 function doiDau(){
   if (current === '0' || current === 'Loi') return;
   current = current.startsWith('-') ? current.slice(1) : '-' + current;
   capnhatManhinh();
 }
+
+/* ---- Tinh phan tram ---- */
 function phanTram(){
   if (typedRightOperand && previous !== null){
     const pv = parseFloat(previous), cv = parseFloat(current);
@@ -252,6 +285,8 @@ function phanTram(){
   }
   capnhatManhinh();
 }
+
+/* ---- Tinh can bac 2 ---- */
 function canBac2(){
   const n = parseFloat(current);
   if (isNaN(n) || n < 0){ current = 'Loi'; capnhatManhinh(); return; }
@@ -260,11 +295,11 @@ function canBac2(){
   capnhatManhinh();
   resetNext = true;
   typedRightOperand = false;
-  lastOperandForRepeat = null;
   operator = null;
   previous = null;
 }
 
+/* ---- Gan su kien cho cac nut tren giao dien ---- */
 document.querySelectorAll('.kbd .btn').forEach(btn=>{
   if (btn.classList.contains('disabled')) return;
   btn.addEventListener('click', ()=>{
@@ -282,6 +317,7 @@ document.querySelectorAll('.kbd .btn').forEach(btn=>{
   });
 });
 
+/* ---- Ho tro phim tat tu ban phim ---- */
 window.addEventListener('keydown', (e)=>{
   if (e.key >= '0' && e.key <= '9'){ themSo(e.key); e.preventDefault(); return; }
   if (e.key === '.'){ themSo('.'); e.preventDefault(); return; }
@@ -295,6 +331,7 @@ window.addEventListener('keydown', (e)=>{
   if (e.key === '/'){ xuLyToanTu('÷'); e.preventDefault(); return; }
 });
 
+/* ---- Khoi tao man hinh luc dau ---- */
 capnhatManhinh();
 </script>
 </body>
