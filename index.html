@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>May tinh co ban</title>
+<style>
+  :root{
+    --bg-top: #f6fbf5;
+    --bg-bottom: #eef7ec;
+    --btn-bg: #ffffff;
+    --btn-border: #e6efe6;
+    --accent: #6b5df0;
+    --display-text: #000;
+    --muted: #6b6b6b;
+    --radius: 8px;
+    --btn-size: 72px;
+  }
+  html,body{
+    height:100%; margin:0;
+    font-family:"Segoe UI","Segoe UI Variable",system-ui,-apple-system,"Helvetica Neue",Arial;
+    background:linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:28px;color:#0b1a0b;
+  }
+  .calc{
+    width:420px;
+    border-radius:10px;
+    background:linear-gradient(180deg,rgba(255,255,255,0.85),rgba(255,255,255,0.72));
+    box-shadow:0 6px 20px rgba(16,24,32,0.12);
+    border:1px solid rgba(0,0,0,0.04);
+    overflow:hidden;
+  }
+  .titlebar{height:48px;display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid rgba(3,20,10,0.02);}
+  .app-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#2b8b7b,#7fc6a6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;}
+  .title-text{font-weight:600;font-size:14px;color:#0b2b1a;flex:1;}
+  .main{padding:14px 18px 18px 18px;background:linear-gradient(180deg,rgba(246,251,245,0.6),rgba(239,251,240,0.4));}
+  .mode-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .mode-title{font-size:20px;font-weight:700;color:#17221a;}
+  .display{height:110px;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;margin-bottom:12px;}
+  #summary{color:var(--muted);font-size:18px;text-align:right;min-height:22px;}
+  #display{font-size:72px;font-weight:700;color:var(--display-text);text-align:right;overflow:hidden;white-space:nowrap;transition:font-size 0.12s;}
+  .memory-row{display:flex;justify-content:space-between;color:#9aa69a;font-size:13px;padding:6px 2px;margin-bottom:10px;}
+  .kbd{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .btn{height:var(--btn-size);border-radius:var(--radius);background:var(--btn-bg);border:1px solid var(--btn-border);display:flex;align-items:center;justify-content:center;font-size:20px;color:#0b1a0b;user-select:none;transition:background 0.12s,transform 0.06s;}
+  .btn.small{font-size:17px;}
+  .btn.equals{background:var(--accent);color:#fff;font-weight:700;}
+  .btn.disabled{opacity:0.42;pointer-events:none;}
+  .btn:hover{filter:brightness(0.97);cursor:pointer;}
+  @media(max-width:460px){.calc{width:94vw}:root{--btn-size:60px}#display{font-size:56px}}
+</style>
+</head>
+<body>
+  <div class="calc">
+    <div class="titlebar">
+      <div class="app-icon">C</div>
+      <div class="title-text">May tinh</div>
+    </div>
+
+    <div class="main">
+      <div class="mode-row"><div class="mode-title">Co ban</div></div>
+
+      <div class="display">
+        <div id="summary"></div>
+        <div id="display">0</div>
+      </div>
+
+      <div class="memory-row"><div>MC&nbsp;&nbsp;MR&nbsp;&nbsp;M+&nbsp;&nbsp;M−&nbsp;&nbsp;MS</div><div>M∨</div></div>
+
+      <div class="kbd">
+        <div class="btn small" data-action="phantram">%</div>
+        <div class="btn small" data-action="xoa-entry">CE</div>
+        <div class="btn small" data-action="xoa">C</div>
+        <div class="btn small" data-action="xoa1">⌫</div>
+
+        <div class="btn disabled">¹/x</div>
+        <div class="btn disabled">x²</div>
+        <div class="btn" data-action="canbac2">√</div>
+        <div class="btn" data-action="toantu" data-value="÷">÷</div>
+
+        <div class="btn" data-action="so" data-value="7">7</div>
+        <div class="btn" data-action="so" data-value="8">8</div>
+        <div class="btn" data-action="so" data-value="9">9</div>
+        <div class="btn" data-action="toantu" data-value="×">×</div>
+
+        <div class="btn" data-action="so" data-value="4">4</div>
+        <div class="btn" data-action="so" data-value="5">5</div>
+        <div class="btn" data-action="so" data-value="6">6</div>
+        <div class="btn" data-action="toantu" data-value="−">−</div>
+
+        <div class="btn" data-action="so" data-value="1">1</div>
+        <div class="btn" data-action="so" data-value="2">2</div>
+        <div class="btn" data-action="so" data-value="3">3</div>
+        <div class="btn" data-action="toantu" data-value="+">+</div>
+
+        <div class="btn" data-action="doidau">±</div>
+        <div class="btn" data-action="so" data-value="0">0</div>
+        <div class="btn" data-action="so" data-value=".">.</div>
+        <div class="btn equals" data-action="bang">=</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const displayEl = document.getElementById('display');
+const summaryEl = document.getElementById('summary');
+
+let previous = null;
+let current = '0';
+let operator = null;
+let lastOperandForRepeat = null;
+let typedRightOperand = false;
+let resetNext = false;
+const MAX_FONT = 72;
+const MIN_FONT = 28;
+
+function capnhatManhinh(){
+  displayEl.textContent = current;
+  displayTuDong();
+}
+function xoaTomtat(){ summaryEl.textContent = ''; }
+
+function displayTuDong(){
+  displayEl.style.fontSize = MAX_FONT + 'px';
+  let font = MAX_FONT;
+  while (displayEl.scrollWidth > displayEl.clientWidth && font > MIN_FONT) {
+    font -= 2;
+    displayEl.style.fontSize = font + 'px';
+  }
+}
+
+function themSo(d){
+  if (resetNext){
+    current = '0';
+    resetNext = false;
+    typedRightOperand = true;
+  }
+  if (d === '.'){
+    if (current.includes('.')) return;
+    current += '.';
+  } else {
+    if (current === '0') current = d;
+    else if (current === '-0') current = '-' + d;
+    else current += d;
+  }
+  capnhatManhinh();
+}
+
+function tinh(aStr, op, bStr){
+  const a = parseFloat(aStr);
+  const b = parseFloat(bStr);
+  if (isNaN(a) || isNaN(b)) return null;
+  switch(op){
+    case '+': return a + b;
+    case '−': return a - b;
+    case '×': return a * b;
+    case '÷': return b === 0 ? NaN : a / b;
+  }
+  return null;
+}
+
+function dinhDang(n){
+  if (!isFinite(n)) return 'Loi';
+  let s = String(Number(n.toPrecision(12)));
+  if (s.indexOf('.') !== -1) s = s.replace(/(?:\.0+|(\.\d+?)0+)$/, '$1');
+  return s;
+}
+
+function xuLyToanTu(op){
+  if (operator === null){
+    previous = current;
+    operator = op;
+    resetNext = true;
+    typedRightOperand = false;
+    lastOperandForRepeat = null;
+    summaryEl.textContent = `${previous} ${operator}`;
+    return;
+  }
+
+  if (!typedRightOperand){
+    operator = op;
+    summaryEl.textContent = `${previous} ${operator}`;
+    return;
+  }
+
+  const res = tinh(previous, operator, current);
+  const formatted = (res === null || !isFinite(res)) ? 'Loi' : dinhDang(res);
+  previous = formatted;
+  current = formatted;
+  lastOperandForRepeat = previous;
+  operator = op;
+  resetNext = true;
+  typedRightOperand = false;
+  summaryEl.textContent = `${previous} ${operator}`;
+  capnhatManhinh();
+}
+
+function xuLyBang(){
+  if (operator === null) return;
+
+  if (typedRightOperand){
+    const res = tinh(previous, operator, current);
+    const formatted = (res === null || !isFinite(res)) ? 'Loi' : dinhDang(res);
+    summaryEl.textContent = `${previous} ${operator} ${current} =`;
+    lastOperandForRepeat = current;
+    current = formatted;
+    operator = null;
+    previous = null;
+    resetNext = true;
+    typedRightOperand = false;
+    capnhatManhinh();
+    return;
+  }
+
+  if (lastOperandForRepeat === null){
+    lastOperandForRepeat = previous;
+  }
+  const left = previous || current;
+  const right = lastOperandForRepeat;
+  const res = tinh(left, operator, right);
+  const formatted = (res === null || !isFinite(res)) ? 'Loi' : dinhDang(res);
+  summaryEl.textContent = `${left} ${operator} ${right} =`;
+  current = formatted;
+  previous = current;
+  resetNext = true;
+  typedRightOperand = false;
+  capnhatManhinh();
+}
+
+function xoaTatca(){
+  previous = null; current = '0'; operator = null; lastOperandForRepeat = null; resetNext = false; typedRightOperand = false;
+  capnhatManhinh(); xoaTomtat();
+}
+function xoaNhap(){ current = '0'; capnhatManhinh(); }
+function xoa1So(){
+  if (current === 'Loi'){ current = '0'; capnhatManhinh(); return; }
+  if (current.length <= 1 || current === '-0') current = '0';
+  else current = current.slice(0, -1);
+  capnhatManhinh();
+}
+function doiDau(){
+  if (current === '0' || current === 'Loi') return;
+  current = current.startsWith('-') ? current.slice(1) : '-' + current;
+  capnhatManhinh();
+}
+function phanTram(){
+  if (typedRightOperand && previous !== null){
+    const pv = parseFloat(previous), cv = parseFloat(current);
+    if (!isNaN(pv) && !isNaN(cv)) current = dinhDang(pv * cv / 100);
+  } else {
+    current = dinhDang(parseFloat(current) / 100);
+  }
+  capnhatManhinh();
+}
+function canBac2(){
+  const n = parseFloat(current);
+  if (isNaN(n) || n < 0){ current = 'Loi'; capnhatManhinh(); return; }
+  summaryEl.textContent = `√(${current})`;
+  current = dinhDang(Math.sqrt(n));
+  capnhatManhinh();
+  resetNext = true;
+  typedRightOperand = false;
+  lastOperandForRepeat = null;
+  operator = null;
+  previous = null;
+}
+
+document.querySelectorAll('.kbd .btn').forEach(btn=>{
+  if (btn.classList.contains('disabled')) return;
+  btn.addEventListener('click', ()=>{
+    const action = btn.dataset.action;
+    const val = btn.dataset.value;
+    if (action === 'so'){ themSo(val); }
+    else if (action === 'toantu'){ xuLyToanTu(val); }
+    else if (action === 'bang'){ xuLyBang(); }
+    else if (action === 'xoa'){ xoaTatca(); }
+    else if (action === 'xoa-entry'){ xoaNhap(); }
+    else if (action === 'xoa1'){ xoa1So(); }
+    else if (action === 'doidau'){ doiDau(); }
+    else if (action === 'phantram'){ phanTram(); }
+    else if (action === 'canbac2'){ canBac2(); }
+  });
+});
+
+window.addEventListener('keydown', (e)=>{
+  if (e.key >= '0' && e.key <= '9'){ themSo(e.key); e.preventDefault(); return; }
+  if (e.key === '.'){ themSo('.'); e.preventDefault(); return; }
+  if (e.key === 'Enter' || e.key === '='){ xuLyBang(); e.preventDefault(); return; }
+  if (e.key === 'Backspace'){ xoa1So(); e.preventDefault(); return; }
+  if (e.key === 'Escape'){ xoaTatca(); e.preventDefault(); return; }
+  if (e.key === '%'){ phanTram(); e.preventDefault(); return; }
+  if (e.key === '+'){ xuLyToanTu('+'); e.preventDefault(); return; }
+  if (e.key === '-'){ xuLyToanTu('−'); e.preventDefault(); return; }
+  if (e.key === '*'){ xuLyToanTu('×'); e.preventDefault(); return; }
+  if (e.key === '/'){ xuLyToanTu('÷'); e.preventDefault(); return; }
+});
+
+capnhatManhinh();
+</script>
+</body>
+</html>
